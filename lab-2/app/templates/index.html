@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+    <h2>Create note</h2>
+    <form class="note-form" method="post" action="{{ url_for('notes.create_note') }}">
+        <label>
+            Title
+            <input type="text" name="title" maxlength="120" required>
+        </label>
+        <label>
+            Content
+            <textarea name="content" rows="5" required></textarea>
+        </label>
+        <button type="submit">Save note</button>
+    </form>
+</section>
+
+<section class="panel">
+    <div class="section-title">
+        <h2>Recent notes</h2>
+        <span>{{ notes|length }} shown</span>
+    </div>
+    {% if notes %}
+    <div class="note-list">
+        {% for note in notes %}
+        <article class="note-card">
+            <div class="note-card__header">
+                <h3>{{ note.title }}</h3>
+                <span>{{ note.updated_at.strftime("%Y-%m-%d %H:%M UTC") }}</span>
+            </div>
+            <p>{{ note.content }}</p>
+            <div class="note-card__actions">
+                <a href="{{ url_for('notes.edit_note', note_id=note.id) }}">Edit</a>
+                <form method="post" action="{{ url_for('notes.delete_note', note_id=note.id) }}">
+                    <button type="submit" class="link-button">Delete</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-state">No notes yet. Create the first one.</p>
+    {% endif %}
+</section>
+{% endblock %}

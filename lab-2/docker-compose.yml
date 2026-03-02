@@ -1,0 +1,43 @@
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-}
+      PORT: ${APP_PORT:-8080}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-notes}
+      DB_USER: ${DB_USER:-notes}
+      DB_PASSWORD: ${DB_PASSWORD:-notes}
+      NOTES_PER_PAGE: ${NOTES_PER_PAGE:-20}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      DB_WAIT_TIMEOUT: ${DB_WAIT_TIMEOUT:-30}
+      STATIC_FOLDER: ${STATIC_FOLDER:-/app/static-data}
+      STATIC_SOURCE_DIR: ${STATIC_SOURCE_DIR:-/app/app/static_seed}
+      STATIC_TARGET_DIR: ${STATIC_TARGET_DIR:-/app/static-data}
+    ports:
+      - "${HOST_PORT:-8080}:${APP_PORT:-8080}"
+    volumes:
+      - static_data:/app/static-data
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-notes}
+      POSTGRES_USER: ${DB_USER:-notes}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-notes}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-notes} -d ${DB_NAME:-notes}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_data:
