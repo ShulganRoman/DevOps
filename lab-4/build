@@ -1,0 +1,34 @@
+ARG SYSTEM_IMAGE=lab4-system:latest
+FROM ${SYSTEM_IMAGE}
+
+ARG APP_HOME=/app
+ARG APP_USER=roman
+ARG APP_GROUP=shulgan
+ARG BUILD_DIR=dist
+ARG INSTALL_COMMAND=ci
+ARG BUILD_SCRIPT=build
+ARG NODE_ENV=development
+
+ENV APP_HOME=${APP_HOME} \
+    BUILD_DIR=${BUILD_DIR} \
+    APP_USER=${APP_USER} \
+    APP_GROUP=${APP_GROUP} \
+    BUILD_SCRIPT=${BUILD_SCRIPT} \
+    NODE_ENV=${NODE_ENV}
+
+WORKDIR ${APP_HOME}
+
+COPY --chown=${APP_USER}:${APP_GROUP} . ./
+RUN test -f package.json \
+    || (echo "package.json is required in the build context" >&2; exit 1)
+RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
+        npm ${INSTALL_COMMAND}; \
+    else \
+        npm install; \
+    fi \
+    && npm cache clean --force
+
+RUN npm run "${BUILD_SCRIPT}" \
+    && npm prune --omit=dev \
+    && mkdir -p node_modules \
+    && npm cache clean --force
