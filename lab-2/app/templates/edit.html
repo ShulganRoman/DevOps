@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+    <div class="section-title">
+        <h2>Edit note</h2>
+        <a href="{{ url_for('notes.index') }}">Back</a>
+    </div>
+    <form class="note-form" method="post" action="{{ url_for('notes.edit_note', note_id=note.id) }}">
+        <label>
+            Title
+            <input type="text" name="title" maxlength="120" value="{{ note.title }}" required>
+        </label>
+        <label>
+            Content
+            <textarea name="content" rows="7" required>{{ note.content }}</textarea>
+        </label>
+        <button type="submit">Update note</button>
+    </form>
+</section>
+{% endblock %}
