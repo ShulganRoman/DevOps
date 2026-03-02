@@ -1,0 +1,29 @@
+ARG ALPINE_VERSION=3.20
+FROM alpine:${ALPINE_VERSION}
+
+ARG APP_USER=roman
+ARG APP_GROUP=shulgan
+ARG APP_UID=10001
+ARG APP_GID=10001
+
+ARG NODEJS_PACKAGE=nodejs
+ARG NPM_PACKAGE=npm
+ARG TZ=UTC
+
+ENV APP_HOME=/app \
+    HOME=/home/${APP_USER} \
+    TZ=${TZ}
+
+RUN apk add --no-cache \
+        ${NODEJS_PACKAGE} \
+        ${NPM_PACKAGE} \
+        tzdata \
+    && addgroup -g "${APP_GID}" -S "${APP_GROUP}" \
+    && adduser -u "${APP_UID}" -S -D -H -G "${APP_GROUP}" "${APP_USER}" \
+    && mkdir -p "${HOME}" \
+    && mkdir -p "${APP_HOME}" \
+    && chown -R "${APP_USER}:${APP_GROUP}" "${HOME}" "${APP_HOME}" \
+    && rm -rf /var/cache/apk/* /tmp/*
+
+WORKDIR ${APP_HOME}
+USER ${APP_USER}

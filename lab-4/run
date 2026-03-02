@@ -1,0 +1,45 @@
+ARG BUILD_IMAGE=lab4-build:latest
+ARG ALPINE_VERSION=3.20
+FROM ${BUILD_IMAGE} AS build_artifacts
+
+FROM alpine:${ALPINE_VERSION}
+
+ARG APP_USER=roman
+ARG APP_GROUP=shulgan
+ARG APP_UID=10001
+ARG APP_GID=10001
+ARG NODEJS_PACKAGE=nodejs
+ARG NPM_PACKAGE=npm
+ARG APP_HOME=/app
+ARG BUILD_DIR=dist
+ARG APP_PORT=3000
+ARG START_SCRIPT=start
+ARG TZ=UTC
+
+ENV APP_HOME=${APP_HOME} \
+    BUILD_DIR=${BUILD_DIR} \
+    APP_PORT=${APP_PORT} \
+    HOME=/home/${APP_USER} \
+    START_SCRIPT=${START_SCRIPT} \
+    TZ=${TZ}
+
+RUN apk add --no-cache \
+        ${NODEJS_PACKAGE} \
+        ${NPM_PACKAGE} \
+        tzdata \
+    && addgroup -g "${APP_GID}" -S "${APP_GROUP}" \
+    && adduser -u "${APP_UID}" -S -D -H -G "${APP_GROUP}" "${APP_USER}" \
+    && mkdir -p "${HOME}" \
+    && mkdir -p "${APP_HOME}" \
+    && chown -R "${APP_USER}:${APP_GROUP}" "${HOME}" "${APP_HOME}" \
+    && rm -rf /var/cache/apk/* /tmp/*
+
+WORKDIR ${APP_HOME}
+
+COPY --from=build_artifacts --chown=${APP_USER}:${APP_GROUP} ${APP_HOME}/package*.json ./
+COPY --from=build_artifacts --chown=${APP_USER}:${APP_GROUP} ${APP_HOME}/node_modules ./node_modules
+COPY --from=build_artifacts --chown=${APP_USER}:${APP_GROUP} ${APP_HOME}/${BUILD_DIR} ./${BUILD_DIR}
+
+USER ${APP_USER}
+EXPOSE ${APP_PORT}
+CMD ["sh", "-c", "npm run \"$START_SCRIPT\""]
