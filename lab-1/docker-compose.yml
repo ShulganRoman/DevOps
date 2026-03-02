@@ -1,0 +1,14 @@
+services:
+  mynginx:
+    image: mynginx
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mynginx
+    ports:
+      - "8080:80"
+    volumes:
+      - site-data:/www:ro
+
+volumes:
+  site-data:
